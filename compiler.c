@@ -118,7 +118,17 @@ static void emitReturn() {
 static uint8_t makeConstant(Value value) {
   int constant = addConstant(currentChunk(), value);
   if (constant > UINT8_MAX) {
-    error ("Too many constants in one chunk.");
+    error("Too many constants in one chunk.");
+    return 0;
+  }
+
+  return (uint8_t)constant;
+}
+
+static uint8_t getConstant(Value value) {
+  int constant = findConstant(currentChunk(), value);
+  if (constant == UINT8_MAX) {
+    error("Constant not defined.");
     return 0;
   }
 
@@ -189,13 +199,15 @@ static void string(bool canAssign) {
                                   parser.previous.length - 2)));
 }
 
-static uint8_t identifierConstant(Token* name) {
-  return makeConstant(OBJ_VAL(copyString(name->start,
-                                         name->length)));
+static uint8_t identifierConstant(Token* name,
+                                  bool isDeclaration) {
+  Value value = OBJ_VAL(copyString(name->start, name->length));
+  return isDeclaration ? makeConstant(value) : getConstant(value);
+
 }
 
 static void namedVariable(Token name, bool canAssign) {
-  uint8_t arg = identifierConstant(&name);
+  uint8_t arg = identifierConstant(&name, false);
   
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
@@ -288,9 +300,10 @@ static void parsePrecedence(Precedence precedence) {
   }
 }
 
-static uint8_t parseVariable(const char* errorMessage) {
+static uint8_t parseVariable(const char* errorMessage,
+                             bool isDeclaration) {
   consume(TOKEN_IDENTIFIER, errorMessage);
-  return identifierConstant(&parser.previous);
+  return identifierConstant(&parser.previous, isDeclaration);
 }
 
 static void defineVariable(uint8_t global) {
@@ -306,7 +319,7 @@ static void expression() {
 }
 
 static void varDeclaration() {
-  uint8_t global = parseVariable("Expect variable name.");
+  uint8_t global = parseVariable("Expect variable name.", true);
 
   if (match(TOKEN_EQUAL)) {
     expression();

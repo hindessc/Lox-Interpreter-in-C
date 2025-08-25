@@ -46,6 +46,7 @@ bool valuesEqual(Value a, Value b);
 
 void initValueArray(ValueArray* array);
 void writeValueArray(ValueArray* array, Value value);
+int  findValueArray(ValueArray* array, Value value);
 void freeValueArray(ValueArray* array);
 
 void printValue(Value value);
