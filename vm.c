@@ -31,10 +31,12 @@ static void runtimeError(const char* format, ...) {
 void initVM() {
   resetStack();
   vm.objects = NULL;
+  initTable(&vm.globals);
   initTable(&vm.strings);
 }
 
 void freeVM() {
+  freeTable(&vm.globals);
   freeTable(&vm.strings);
   freeObjects();
 }
@@ -75,6 +77,7 @@ static void concatenate() {
 static InterpretResult run() {
   #define READ_BYTE()(*vm.ip++)
   #define READ_CONSTANT()(vm.chunk->constants.values[READ_BYTE()])
+  #define READ_STRING() AS_STRING(READ_CONSTANT())
 
   #define BINARY_OP(valueType, op)\
     do{\
@@ -110,6 +113,13 @@ static InterpretResult run() {
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
+      case OP_POP: pop(); break;
+      case OP_DEFINE_GLOBAL: {
+        ObjString* name = READ_STRING();
+        tableSet(&vm.globals, name, peek(0));
+        pop();
+        break;
+      }
       case OP_EQUAL:
         Value b = *(vm.stackTop-1);
         Value a = *(vm.stackTop-2);
@@ -143,9 +153,13 @@ static InterpretResult run() {
         }
         *(vm.stackTop-1) = NUMBER_VAL(-AS_NUMBER(*(vm.stackTop-1)));
         break;
-      case OP_RETURN: {
+      case OP_PRINT: {
         printValue(pop());
         printf("\n");
+        break;
+      }
+      case OP_RETURN: {
+        // Exit interpreter.
         return INTERPRET_OK;
       }
     }
@@ -153,6 +167,7 @@ static InterpretResult run() {
 
   #undef READ_BYTE
   #undef READ_CONSTANT
+  #undef READ_STRING
   #undef BINARY_OP
 }
 
