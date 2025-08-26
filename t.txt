@@ -1,4 +1,12 @@
-{
-var b = 2;
-b = 3;
-}
+var a = false;
+var b = true;
+if a then 
+  print "true";
+else if b then 
+  print "truish";
+else 
+  print " false";
+
+print "end";
+
+
