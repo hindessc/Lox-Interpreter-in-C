@@ -1,14 +1,5 @@
-var a = true;
-var b = false;
-if a or (b = true) then 
-  print "true";
-else if b then 
-  print "truish";
-else 
-  print " false";
-
-print b;
-
-print "end";
-
-
+var i = 0;
+while i < 5 do {
+    print i;
+    i = i + 1;
+}
