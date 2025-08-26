@@ -89,6 +89,10 @@ static InterpretResult run() {
       vm.stackTop--;\
     } while (false)
 
+  for (int i = 0; i < vm.chunk->count; i++) {
+    printf("%d ", vm.chunk->code[i]);
+  }
+
   for (;;) {
 
     #ifdef DEBUG_TRACE_EXECUTION
@@ -103,8 +107,8 @@ static InterpretResult run() {
       disassembleInstruction(vm.chunk, (int)(vm.ip-vm.chunk->code));
     #endif
 
-    uint8_t instruction;
-    switch (instruction = READ_BYTE()) {
+    uint8_t instruction = READ_BYTE();
+    switch (instruction) {
       case OP_CONSTANT:{
         Value constant = READ_CONSTANT();
         push(constant);
@@ -114,6 +118,16 @@ static InterpretResult run() {
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
       case OP_POP: pop(); break;
+      case OP_POPN: {
+        uint8_t n = READ_BYTE();
+        vm.stackTop -= n;
+        break;
+      }
+      case OP_GET_LOCAL: {
+        uint8_t slot = READ_BYTE();
+        push(vm.stack[slot]);
+        break;
+      }
       case OP_GET_GLOBAL:
         ObjString* name = READ_STRING();
         Value value;
@@ -127,6 +141,11 @@ static InterpretResult run() {
         ObjString* name = READ_STRING();
         tableSet(&vm.globals, name, peek(0));
         pop();
+        break;
+      }
+      case OP_SET_LOCAL: {
+        uint8_t slot = READ_BYTE();
+        vm.stack[slot] = peek(0);
         break;
       }
       case OP_SET_GLOBAL: {
@@ -180,6 +199,7 @@ static InterpretResult run() {
         // Exit interpreter.
         return INTERPRET_OK;
       }
+      default: return INTERPRET_RUNTIME_ERROR;
     }
   }
 
