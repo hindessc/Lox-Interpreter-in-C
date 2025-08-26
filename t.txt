@@ -1,11 +1,13 @@
-var a = false;
-var b = true;
-if a then 
+var a = true;
+var b = false;
+if a or (b = true) then 
   print "true";
 else if b then 
   print "truish";
 else 
   print " false";
+
+print b;
 
 print "end";
 
