@@ -1,5 +1,16 @@
-fun sum(a, b, c) {
-  return a + b + c;
+var globalSet;
+var globalGet;
+
+fun main() {
+  var a = "initial";
+
+  fun set() { a = "updated"; }
+  fun get() { print a; }
+
+  globalSet = set;
+  globalGet = get;
 }
 
-print 4 + sum(5, 6, 7);
+main();
+globalSet();
+globalGet();
