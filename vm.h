@@ -22,7 +22,16 @@ typedef struct {
   Value* stackTop;
   Table globals;
   Table strings;
+  ObjUpvalue* openUpvalues;
+
+  size_t bytesAllocated;
+  size_t nextGC;
+
   Obj* objects;
+
+  int greyCount;
+  int greyCapacity;
+  Obj** greyStack;
 } VM;
 
 typedef enum {
